@@ -1,0 +1,65 @@
+{
+  "welcome": "欢迎使用 NutriLens",
+  "signIn": "登录",
+  "signUp": "注册",
+  "email": "电子邮件",
+  "password": "密码",
+  "name": "全名",
+  "continue": "继续",
+  "save": "保存",
+  "cancel": "取消",
+  "delete": "删除",
+  "edit": "编辑",
+  "done": "完成",
+  "loading": "加载中...",
+  "dashboard": {
+    "title": "今天",
+    "calories": "卡路里",
+    "remaining": "剩余",
+    "consumed": "已摄入",
+    "protein": "蛋白质",
+    "carbs": "碳水化合物",
+    "fat": "脂肪",
+    "fiber": "纤维",
+    "water": "水",
+    "addMeal": "添加餐食"
+  },
+  "meal": {
+    "takePhoto": "拍照",
+    "chooseFromLibrary": "从相册选择",
+    "manualEntry": "手动输入",
+    "analyzing": "正在分析您的餐食...",
+    "saveMeal": "保存餐食",
+    "editItem": "编辑项目"
+  },
+  "onboarding": {
+    "selectLanguage": "选择您的语言",
+    "step1Title": "您叫什么名字？",
+    "step2Title": "告诉我们关于您的信息",
+    "step3Title": "您的体型数据",
+    "step4Title": "您的目标是什么？",
+    "step5Title": "您有多活跃？",
+    "step6Title": "饮食偏好",
+    "goals": {
+      "lose": "减重",
+      "maintain": "保持体重",
+      "gain": "增肌"
+    },
+    "activity": {
+      "sedentary": "久坐（办公室工作）",
+      "light": "轻度（每周1-3天）",
+      "moderate": "中度（每周3-5天）",
+      "active": "活跃（每周6-7天）",
+      "very_active": "非常活跃（每天两次）"
+    }
+  },
+  "trial": {
+    "daysLeft": "免费试用 — 剩余 {{count}} 天",
+    "expired": "试用期已过期 — 升级以继续使用"
+  },
+  "errors": {
+    "weightTooLow": "目标体重必须至少为43公斤以确保安全。",
+    "networkError": "没有网络连接。",
+    "generic": "出现问题，请重试。"
+  }
+}

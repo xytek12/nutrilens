@@ -1,0 +1,65 @@
+{
+  "welcome": "Willkommen bei NutriLens",
+  "signIn": "Anmelden",
+  "signUp": "Registrieren",
+  "email": "E-Mail",
+  "password": "Passwort",
+  "name": "Vollständiger Name",
+  "continue": "Weiter",
+  "save": "Speichern",
+  "cancel": "Abbrechen",
+  "delete": "Löschen",
+  "edit": "Bearbeiten",
+  "done": "Fertig",
+  "loading": "Wird geladen...",
+  "dashboard": {
+    "title": "Heute",
+    "calories": "Kalorien",
+    "remaining": "Verbleibend",
+    "consumed": "Verbraucht",
+    "protein": "Protein",
+    "carbs": "Kohlenhydrate",
+    "fat": "Fett",
+    "fiber": "Ballaststoffe",
+    "water": "Wasser",
+    "addMeal": "Mahlzeit hinzufügen"
+  },
+  "meal": {
+    "takePhoto": "Foto aufnehmen",
+    "chooseFromLibrary": "Aus Bibliothek wählen",
+    "manualEntry": "Manuelle Eingabe",
+    "analyzing": "Mahlzeit wird analysiert...",
+    "saveMeal": "Mahlzeit speichern",
+    "editItem": "Element bearbeiten"
+  },
+  "onboarding": {
+    "selectLanguage": "Sprache auswählen",
+    "step1Title": "Wie heißen Sie?",
+    "step2Title": "Erzählen Sie uns von sich",
+    "step3Title": "Ihre Maße",
+    "step4Title": "Was ist Ihr Ziel?",
+    "step5Title": "Wie aktiv sind Sie?",
+    "step6Title": "Ernährungspräferenzen",
+    "goals": {
+      "lose": "Gewicht verlieren",
+      "maintain": "Gewicht halten",
+      "gain": "Muskeln aufbauen"
+    },
+    "activity": {
+      "sedentary": "Sitzend (Bürojob)",
+      "light": "Leicht (1-3 Tage/Woche)",
+      "moderate": "Moderat (3-5 Tage/Woche)",
+      "active": "Aktiv (6-7 Tage/Woche)",
+      "very_active": "Sehr aktiv (zweimal/Tag)"
+    }
+  },
+  "trial": {
+    "daysLeft": "Kostenlose Testversion — {{count}} Tage verbleibend",
+    "expired": "Testversion abgelaufen — upgraden Sie jetzt"
+  },
+  "errors": {
+    "weightTooLow": "Das Zielgewicht muss aus Sicherheitsgründen mindestens 43 kg betragen.",
+    "networkError": "Keine Internetverbindung.",
+    "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+  }
+}

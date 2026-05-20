@@ -1,0 +1,65 @@
+{
+  "welcome": "ברוכים הבאים ל-NutriLens",
+  "signIn": "התחברות",
+  "signUp": "הרשמה",
+  "email": "אימייל",
+  "password": "סיסמה",
+  "name": "שם מלא",
+  "continue": "המשך",
+  "save": "שמור",
+  "cancel": "ביטול",
+  "delete": "מחיקה",
+  "edit": "עריכה",
+  "done": "סיום",
+  "loading": "טוען...",
+  "dashboard": {
+    "title": "היום",
+    "calories": "קלוריות",
+    "remaining": "נותרו",
+    "consumed": "נצרך",
+    "protein": "חלבון",
+    "carbs": "פחמימות",
+    "fat": "שומן",
+    "fiber": "סיבים",
+    "water": "מים",
+    "addMeal": "הוסף ארוחה"
+  },
+  "meal": {
+    "takePhoto": "צלם תמונה",
+    "chooseFromLibrary": "בחר מהגלריה",
+    "manualEntry": "הזנה ידנית",
+    "analyzing": "מנתח את הארוחה...",
+    "saveMeal": "שמור ארוחה",
+    "editItem": "ערוך פריט"
+  },
+  "onboarding": {
+    "selectLanguage": "בחר שפה",
+    "step1Title": "מה שמך?",
+    "step2Title": "ספר לנו עליך",
+    "step3Title": "המדדים שלך",
+    "step4Title": "מה המטרה שלך?",
+    "step5Title": "כמה אתה פעיל?",
+    "step6Title": "העדפות תזונתיות",
+    "goals": {
+      "lose": "ירידה במשקל",
+      "maintain": "שמירה על משקל",
+      "gain": "בניית שריר"
+    },
+    "activity": {
+      "sedentary": "יושבני (עבודה במשרד)",
+      "light": "קל (1-3 ימים/שבוע)",
+      "moderate": "בינוני (3-5 ימים/שבוע)",
+      "active": "פעיל (6-7 ימים/שבוע)",
+      "very_active": "פעיל מאוד (פעמיים ביום)"
+    }
+  },
+  "trial": {
+    "daysLeft": "ניסיון חינם — {{count}} ימים נותרו",
+    "expired": "תקופת הניסיון הסתיימה — שדרג להמשך"
+  },
+  "errors": {
+    "weightTooLow": "משקל יעד חייב להיות לפחות 43 ק\"ג לבטיחותך.",
+    "networkError": "אין חיבור לאינטרנט.",
+    "generic": "משהו השתבש. אנא נסה שנית."
+  }
+}
