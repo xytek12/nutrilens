@@ -18,6 +18,10 @@ export interface UserProfile {
   dietary_preferences?: string[];
   language?: Language;
   onboarding_completed?: boolean;
+  daily_calorie_target?: number;
+  daily_protein_target?: number;
+  daily_carbs_target?: number;
+  daily_fat_target?: number;
   trial_started_at?: string;
   subscription_status?: 'free' | 'trial' | 'premium';
   created_at?: string;
