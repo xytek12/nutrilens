@@ -1,44 +1,48 @@
 import { useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { router } from 'expo-router';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { Redirect, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useMealStore } from '../../src/stores/mealStore';
 import { useProfileStore } from '../../src/stores/profileStore';
-import { supabase } from '../../src/lib/supabase';
 import { formatCalories, formatMacro } from '../../src/utils/formatting';
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const session = useAuthStore((s) => s.session);
+  const loading = useAuthStore((s) => s.loading);
   const { todayMeals } = useMealStore();
   const { profile, fetchProfile } = useProfileStore();
 
   useEffect(() => {
     if (session?.user) fetchProfile(session.user.id);
-  }, [session?.user.id]);
+  }, [session?.user?.id]);
 
-  // Redirect to auth if not signed in
-  useEffect(() => {
-    if (!session) router.replace('/(auth)/sign-in');
-  }, [session]);
+  // Show spinner while Supabase is checking the session
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+      </View>
+    );
+  }
+
+  // Use Redirect component (not router.replace) — safe before layout mounts
+  if (!session) return <Redirect href="/(auth)/sign-in" />;
 
   const totalCalories = todayMeals.reduce((s, m) => s + m.total_calories, 0);
   const totalProtein = todayMeals.reduce((s, m) => s + m.total_protein, 0);
   const totalCarbs = todayMeals.reduce((s, m) => s + m.total_carbs, 0);
   const totalFat = todayMeals.reduce((s, m) => s + m.total_fat, 0);
-  const calorieTarget = 2000; // Will be replaced with real TDEE calculation
+  const calorieTarget = 2000;
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.greeting}>
-          Hey {profile?.name || 'there'} 👋
-        </Text>
+        <Text style={styles.greeting}>Hey {profile?.name || 'there'} 👋</Text>
         <Text style={styles.date}>{new Date().toDateString()}</Text>
       </View>
 
-      {/* Calorie ring placeholder */}
       <View style={styles.calorieCard}>
         <Text style={styles.calorieNumber}>{Math.round(totalCalories)}</Text>
         <Text style={styles.calorieLabel}>{t('dashboard.calories')}</Text>
@@ -47,7 +51,6 @@ export default function DashboardScreen() {
         </Text>
       </View>
 
-      {/* Macros */}
       <View style={styles.macroRow}>
         {[
           { label: t('dashboard.protein'), value: totalProtein },
@@ -61,15 +64,10 @@ export default function DashboardScreen() {
         ))}
       </View>
 
-      {/* Add meal button */}
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => router.push('/meal/camera')}
-      >
+      <TouchableOpacity style={styles.addButton} onPress={() => router.push('/meal/camera')}>
         <Text style={styles.addButtonText}>+ {t('dashboard.addMeal')}</Text>
       </TouchableOpacity>
 
-      {/* Meal list */}
       {todayMeals.map((meal) => (
         <View key={meal.id} style={styles.mealCard}>
           <Text style={styles.mealName}>{meal.meal_name}</Text>
@@ -82,6 +80,7 @@ export default function DashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#050D2D' },
+  center: { flex: 1, backgroundColor: '#050D2D', justifyContent: 'center', alignItems: 'center' },
   header: { padding: 24, paddingTop: 60 },
   greeting: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   date: { fontSize: 14, color: '#888', marginTop: 4 },

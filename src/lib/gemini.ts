@@ -1,5 +1,5 @@
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 export interface FoodItem {
   name: string;
@@ -58,7 +58,9 @@ Be precise with portion estimates. Return ONLY valid JSON, no markdown.`;
   });
 
   if (!response.ok) {
-    throw new Error(`Gemini API error: ${response.status}`);
+    const errBody = await response.json().catch(() => ({}));
+    const errMsg = errBody?.error?.message ?? JSON.stringify(errBody);
+    throw new Error(`Gemini API error: ${response.status} — ${errMsg}`);
   }
 
   const data = await response.json();
@@ -66,5 +68,8 @@ Be precise with portion estimates. Return ONLY valid JSON, no markdown.`;
 
   if (!text) throw new Error('No response from Gemini');
 
-  return JSON.parse(text) as GeminiMealResult;
+  // Strip markdown code blocks that Gemini sometimes adds despite being asked not to
+  const cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
+  return JSON.parse(cleaned) as GeminiMealResult;
 }
