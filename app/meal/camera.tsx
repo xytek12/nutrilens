@@ -182,15 +182,16 @@ export default function CameraScreen() {
       addMeal(meal);
       router.back();
     } catch (err) {
+      console.error('Meal analysis error:', err);
       Alert.alert(
-        "Couldn't analyze photo",
-        'Try again or add your meal manually.',
+        t('meals.ai_failed_title'),
+        t('meals.ai_failed_message'),
         [
-          { text: 'Try Again', onPress: () => pickAndAnalyze(source) },
-          { text: 'Add Manually', onPress: () => router.push('/meal/manual') },
+          { text: t('meals.try_again'),    onPress: () => pickAndAnalyze(source) },
+          { text: t('meals.add_manually'), onPress: () => router.push('/meal/manual') },
+          { text: t('common.cancel'),      style: 'cancel' },
         ],
       );
-      console.error('Meal analysis error:', err);
     } finally {
       setStatus('idle');
     }

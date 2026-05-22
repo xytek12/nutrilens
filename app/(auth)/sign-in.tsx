@@ -4,6 +4,8 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../src/lib/supabase';
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function SignInScreen() {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
@@ -15,8 +17,12 @@ export default function SignInScreen() {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
+    if (!EMAIL_REGEX.test(email.trim())) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setLoading(false);
     if (error) {
       Alert.alert('Sign In Failed', error.message);
@@ -37,6 +43,7 @@ export default function SignInScreen() {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
+        autoCorrect={false}
       />
       <TextInput
         style={styles.input}

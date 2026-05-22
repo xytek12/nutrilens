@@ -7,6 +7,34 @@ import { useMealStore } from '../../src/stores/mealStore';
 import { useProfileStore } from '../../src/stores/profileStore';
 import { formatCalories, formatMacro } from '../../src/utils/formatting';
 
+function getFoodEmoji(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes('chicken') || n.includes('schnitzel') || n.includes('turkey')) return '🍗';
+  if (n.includes('beef') || n.includes('steak') || n.includes('burger') || n.includes('meat')) return '🥩';
+  if (n.includes('fish') || n.includes('salmon') || n.includes('tuna') || n.includes('sushi')) return '🐟';
+  if (n.includes('pizza')) return '🍕';
+  if (n.includes('pasta') || n.includes('spaghetti') || n.includes('noodle')) return '🍝';
+  if (n.includes('rice') || n.includes('fried rice')) return '🍚';
+  if (n.includes('salad')) return '🥗';
+  if (n.includes('soup')) return '🍲';
+  if (n.includes('sandwich') || n.includes('bread') || n.includes('toast')) return '🥪';
+  if (n.includes('egg') || n.includes('omelet') || n.includes('shakshuka')) return '🥚';
+  if (n.includes('cheese') || n.includes('dairy') || n.includes('milk') || n.includes('yogurt')) return '🧀';
+  if (n.includes('fruit') || n.includes('apple') || n.includes('banana') || n.includes('orange')) return '🍎';
+  if (n.includes('coffee') || n.includes('tea') || n.includes('drink') || n.includes('juice')) return '☕';
+  if (n.includes('protein') || n.includes('supplement') || n.includes('shake') || n.includes('whey')) return '💪';
+  if (n.includes('sweet') || n.includes('chocolate') || n.includes('cake') || n.includes('cookie')) return '🍫';
+  if (n.includes('hummus') || n.includes('falafel')) return '🧆';
+  if (n.includes('oat') || n.includes('cereal') || n.includes('granola')) return '🥣';
+  return '🍽️';
+}
+
+function cleanFoodName(name: string): string {
+  const parts = name.split(',').map((p) => p.trim());
+  const unique = [...new Set(parts)];
+  return unique[0];
+}
+
 function getGreeting(name: string, t: (key: string, opts?: any) => string) {
   const h = new Date().getHours();
   if (h >= 5 && h < 12) return t('dashboard.greeting_morning', { name });
@@ -173,11 +201,11 @@ export default function DashboardScreen() {
                   <Image source={{ uri: meal.photo_url }} style={styles.mealPhoto} />
                 ) : (
                   <View style={[styles.mealPhoto, styles.mealPhotoPlaceholder]}>
-                    <Text style={{ fontSize: 26 }}>🍽️</Text>
+                    <Text style={{ fontSize: 26 }}>{getFoodEmoji(meal.meal_name)}</Text>
                   </View>
                 )}
                 <View style={styles.mealInfo}>
-                  <Text style={styles.mealName} numberOfLines={1}>{meal.meal_name}</Text>
+                  <Text style={styles.mealName} numberOfLines={1}>{cleanFoodName(meal.meal_name)}</Text>
                   <Text style={styles.mealMacros}>
                     {formatMacro(meal.total_protein)} Protein · {formatMacro(meal.total_carbs)} Carbs · {formatMacro(meal.total_fat)} Fat
                   </Text>

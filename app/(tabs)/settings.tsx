@@ -69,7 +69,7 @@ export default function SettingsScreen() {
       </View>
 
       {/* Account section */}
-      <Text style={styles.sectionLabel}>ACCOUNT</Text>
+      <Text style={styles.sectionLabel}>{t('settings.section_account')}</Text>
       <View style={styles.card}>
         <SettingRow icon="👤" label={t('settings.personal_info')}   onPress={comingSoon} />
         <View style={styles.separator} />
@@ -79,7 +79,7 @@ export default function SettingsScreen() {
       </View>
 
       {/* Language section */}
-      <Text style={styles.sectionLabel}>LANGUAGE</Text>
+      <Text style={styles.sectionLabel}>{t('settings.section_language')}</Text>
       <View style={styles.card}>
         <TouchableOpacity style={rowStyles.row} onPress={() => setShowLangPicker(!showLangPicker)} activeOpacity={0.7}>
           <Text style={rowStyles.icon}>🌐</Text>
@@ -111,15 +111,15 @@ export default function SettingsScreen() {
       </View>
 
       {/* Subscription */}
-      <Text style={styles.sectionLabel}>SUBSCRIPTION</Text>
+      <Text style={styles.sectionLabel}>{t('settings.section_subscription')}</Text>
       <View style={styles.card}>
-        <SettingRow icon="⭐" label={t('settings.subscription')} value="Free Trial" />
+        <SettingRow icon="⭐" label={t('settings.subscription')} value={t('settings.trial_active', { days: 14 })} />
         <View style={styles.separator} />
-        <TouchableOpacity style={rowStyles.row} onPress={() => Alert.alert('Upgrade', 'Premium subscription coming soon!')}>
+        <TouchableOpacity style={rowStyles.row} onPress={() => Alert.alert(t('settings.upgrade_premium'), 'Premium subscription coming soon!')}>
           <Text style={rowStyles.icon}>🚀</Text>
           <View style={{ flex: 1 }}>
-            <Text style={[rowStyles.label, { color: '#2DB04B' }]}>Upgrade to Premium</Text>
-            <Text style={{ fontSize: 12, color: '#6B7280' }}>Unlock AI plans, unlimited meals & more</Text>
+            <Text style={[rowStyles.label, { color: '#2DB04B' }]}>{t('settings.upgrade_premium')}</Text>
+            <Text style={{ fontSize: 12, color: '#6B7280' }}>{t('settings.upgrade_desc')}</Text>
           </View>
           <Text style={rowStyles.arrow}>›</Text>
         </TouchableOpacity>
@@ -138,7 +138,7 @@ export default function SettingsScreen() {
         <Text style={styles.signOutText}>{t('auth.signout')}</Text>
       </TouchableOpacity>
 
-      <Text style={styles.version}>NutriLens v1.0.0</Text>
+      <Text style={styles.version}>{t('settings.version')}</Text>
 
     </ScrollView>
   );

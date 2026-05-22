@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useMealStore } from '../../src/stores/mealStore';
 import { useProfileStore } from '../../src/stores/profileStore';
 import { formatMacro } from '../../src/utils/formatting';
+import { supabase } from '../../src/lib/supabase';
 
 function StatCard({ icon, label, value, sub, color }: { icon: string; label: string; value: string; sub: string; color: string }) {
   return (
@@ -56,17 +58,63 @@ const macroStyles = StyleSheet.create({
   pct:    { width: 40, textAlign: 'right', fontSize: 12, fontWeight: '700' },
 });
 
+type Period = 'week' | 'month' | '3months';
+
 export default function ProgressScreen() {
+  const { t } = useTranslation();
   const session   = useAuthStore((s) => s.session);
   const { todayMeals, loadTodayMeals } = useMealStore();
-  const { profile } = useProfileStore();
-  const [period, setPeriod] = useState<'Week' | 'Month' | '3 Months'>('Week');
+  const { profile, fetchProfile } = useProfileStore();
+  const [period, setPeriod] = useState<Period>('week');
+
+  // Weight log modal state
+  const [weightModalOpen, setWeightModalOpen] = useState(false);
+  const [weightInput, setWeightInput] = useState('');
+  const [savingWeight, setSavingWeight] = useState(false);
 
   useEffect(() => {
     if (session?.user) loadTodayMeals(session.user.id);
   }, [session?.user?.id]);
 
-  // Use profile targets or safe defaults
+  function openWeightModal() {
+    // Pre-fill with current weight from profile
+    setWeightInput(profile?.weight_kg ? String(profile.weight_kg) : '');
+    setWeightModalOpen(true);
+  }
+
+  async function saveWeight() {
+    const userId = session?.user?.id;
+    if (!userId) return;
+    const w = parseFloat(weightInput.replace(',', '.'));
+    if (!w || w < 20 || w > 400) {
+      Alert.alert(t('common.error'), 'Please enter a valid weight (20-400 kg).');
+      return;
+    }
+    setSavingWeight(true);
+    try {
+      // Insert into weight_logs
+      const { error: logErr } = await supabase
+        .from('weight_logs')
+        .insert({
+          user_id: userId,
+          weight_kg: w,
+          logged_at: new Date().toISOString(),
+        });
+      if (logErr) {
+        Alert.alert(t('common.error'), logErr.message);
+        return;
+      }
+      // Update the profile's current weight too, so dashboard/plan reflect it
+      await supabase.from('profiles').update({ weight_kg: w }).eq('id', userId);
+      await fetchProfile(userId);
+      setWeightModalOpen(false);
+    } catch (err: any) {
+      Alert.alert(t('common.error'), err?.message || 'Could not save weight.');
+    } finally {
+      setSavingWeight(false);
+    }
+  }
+
   const CALORIE_TARGET = profile?.daily_calorie_target ?? 2000;
   const PROTEIN_TARGET = profile?.daily_protein_target ?? 160;
   const CARBS_TARGET   = profile?.daily_carbs_target   ?? 275;
@@ -79,51 +127,87 @@ export default function ProgressScreen() {
   const calPct        = Math.round((totalCalories / CALORIE_TARGET) * 100);
   const onTrack       = totalCalories <= CALORIE_TARGET;
 
+  const periods: { key: Period; label: string }[] = [
+    { key: 'week',    label: t('progress.chart_7d') },
+    { key: 'month',   label: t('progress.chart_30d') },
+    { key: '3months', label: t('progress.chart_90d') },
+  ];
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
       <View style={styles.header}>
-        <Text style={styles.title}>Progress</Text>
+        <Text style={styles.title}>{t('progress.title')}</Text>
         <Text style={[styles.subtitle, { color: onTrack ? '#2DB04B' : '#EF4444' }]}>
-          {onTrack ? "You're on track today ✅" : "Over your calorie goal today ⚠️"}
+          {onTrack ? t('progress.on_track_today') : t('progress.over_goal')}
         </Text>
       </View>
 
       {/* Period toggle */}
       <View style={styles.toggle}>
-        {(['Week', 'Month', '3 Months'] as const).map((p) => (
+        {periods.map((p) => (
           <TouchableOpacity
-            key={p}
-            style={[styles.toggleBtn, period === p && styles.toggleBtnActive]}
-            onPress={() => setPeriod(p)}
+            key={p.key}
+            style={[styles.toggleBtn, period === p.key && styles.toggleBtnActive]}
+            onPress={() => setPeriod(p.key)}
           >
-            <Text style={[styles.toggleLabel, period === p && styles.toggleLabelActive]}>{p}</Text>
+            <Text style={[styles.toggleLabel, period === p.key && styles.toggleLabelActive]}>{p.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
+      {/* Log Weight button */}
+      <TouchableOpacity style={styles.logWeightBtn} onPress={openWeightModal}>
+        <Text style={styles.logWeightIcon}>⚖️</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.logWeightTitle}>{t('progress.log_weight')}</Text>
+          {profile?.weight_kg ? (
+            <Text style={styles.logWeightSub}>{t('progress.current_weight')}: {profile.weight_kg} kg</Text>
+          ) : null}
+        </View>
+        <Text style={styles.logWeightArrow}>›</Text>
+      </TouchableOpacity>
+
       {/* Today's stats */}
-      <Text style={styles.sectionTitle}>Today's Summary</Text>
+      <Text style={styles.sectionTitle}>{t('progress.today_summary')}</Text>
       <View style={styles.statsRow}>
-        <StatCard icon="🔥" label="Calories" value={`${Math.round(totalCalories)}`} sub={`${calPct}% of goal`} color="#F97316" />
-        <StatCard icon="💧" label="Remaining" value={`${Math.max(0, CALORIE_TARGET - Math.round(totalCalories))}`} sub="kcal left" color="#2DB04B" />
-        <StatCard icon="🍽️" label="Meals" value={`${todayMeals.length}`} sub="logged today" color="#3B82F6" />
+        <StatCard
+          icon="🔥"
+          label={t('food_detail.calories')}
+          value={`${Math.round(totalCalories)}`}
+          sub={t('progress.pct_of_goal', { pct: calPct })}
+          color="#F97316"
+        />
+        <StatCard
+          icon="💧"
+          label={t('dashboard.remaining')}
+          value={`${Math.max(0, CALORIE_TARGET - Math.round(totalCalories))}`}
+          sub={t('progress.kcal_left')}
+          color="#2DB04B"
+        />
+        <StatCard
+          icon="🍽️"
+          label={t('progress.meals')}
+          value={`${todayMeals.length}`}
+          sub={t('progress.logged_today')}
+          color="#3B82F6"
+        />
       </View>
 
       {/* Macros breakdown */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Today's Macros</Text>
-        <MacroRow label="Protein"       value={totalProtein} target={PROTEIN_TARGET} color="#2DB04B" icon="💪" />
-        <MacroRow label="Carbohydrates" value={totalCarbs}   target={CARBS_TARGET}   color="#F97316" icon="🌾" />
-        <MacroRow label="Fat"           value={totalFat}     target={FAT_TARGET}     color="#EAB308" icon="🥑" />
+        <Text style={styles.cardTitle}>{t('progress.today_macros')}</Text>
+        <MacroRow label={t('dashboard.protein')}       value={totalProtein} target={PROTEIN_TARGET} color="#2DB04B" icon="💪" />
+        <MacroRow label={t('progress.carbohydrates')}  value={totalCarbs}   target={CARBS_TARGET}   color="#F97316" icon="🌾" />
+        <MacroRow label={t('dashboard.fat')}           value={totalFat}     target={FAT_TARGET}     color="#EAB308" icon="🥑" />
       </View>
 
       {/* Calories bar */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Calories vs Goal</Text>
+        <Text style={styles.cardTitle}>{t('progress.calories_vs_goal')}</Text>
         <View style={styles.calBarRow}>
-          <Text style={styles.calBarLabel}>Consumed</Text>
-          <Text style={styles.calBarValue}>{Math.round(totalCalories)} kcal</Text>
+          <Text style={styles.calBarLabel}>{t('dashboard.consumed')}</Text>
+          <Text style={styles.calBarValue}>{Math.round(totalCalories)} {t('common.kcal')}</Text>
         </View>
         <View style={styles.calTrack}>
           <View style={[styles.calFill, {
@@ -132,22 +216,80 @@ export default function ProgressScreen() {
           }]} />
         </View>
         <View style={styles.calBarRow}>
-          <Text style={styles.calBarLabel}>Goal</Text>
-          <Text style={styles.calBarValue}>{CALORIE_TARGET} kcal</Text>
+          <Text style={styles.calBarLabel}>{t('progress.goal_label')}</Text>
+          <Text style={styles.calBarValue}>{CALORIE_TARGET} {t('common.kcal')}</Text>
         </View>
         <Text style={[styles.calStatus, { color: onTrack ? '#2DB04B' : '#EF4444' }]}>
           {onTrack
-            ? `${CALORIE_TARGET - Math.round(totalCalories)} kcal remaining`
-            : `${Math.round(totalCalories) - CALORIE_TARGET} kcal over goal`}
+            ? t('progress.kcal_remaining', { count: CALORIE_TARGET - Math.round(totalCalories) })
+            : t('progress.kcal_over', { count: Math.round(totalCalories) - CALORIE_TARGET })}
         </Text>
       </View>
 
-      {/* Charts coming soon */}
-      <View style={styles.comingSoon}>
-        <Text style={styles.comingSoonIcon}>📈</Text>
-        <Text style={styles.comingSoonText}>Weight trend charts coming soon</Text>
-        <Text style={styles.comingSoonHint}>Log your weight daily to track progress over time</Text>
-      </View>
+      {/* Historical charts */}
+      {period === 'week' ? (
+        <View style={styles.comingSoon}>
+          <Text style={styles.comingSoonIcon}>📈</Text>
+          <Text style={styles.comingSoonText}>{t('progress.weekly_soon')}</Text>
+          <Text style={styles.comingSoonHint}>{t('progress.weekly_hint')}</Text>
+        </View>
+      ) : period === 'month' ? (
+        <View style={styles.comingSoon}>
+          <Text style={styles.comingSoonIcon}>📅</Text>
+          <Text style={styles.comingSoonText}>{t('progress.monthly_soon')}</Text>
+          <Text style={styles.comingSoonHint}>{t('progress.monthly_hint')}</Text>
+        </View>
+      ) : (
+        <View style={styles.comingSoon}>
+          <Text style={styles.comingSoonIcon}>🏆</Text>
+          <Text style={styles.comingSoonText}>{t('progress.quarterly_soon')}</Text>
+          <Text style={styles.comingSoonHint}>{t('progress.quarterly_hint')}</Text>
+        </View>
+      )}
+
+      {/* Weight log modal */}
+      <Modal
+        visible={weightModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setWeightModalOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>{t('progress.log_weight')}</Text>
+            <Text style={styles.modalHint}>kg</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={weightInput}
+              onChangeText={(v) => setWeightInput(v.replace(/[^0-9.,]/g, ''))}
+              keyboardType="decimal-pad"
+              placeholder="70.5"
+              placeholderTextColor="#9CA3AF"
+              autoFocus
+            />
+            <View style={styles.modalBtnRow}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnCancel]}
+                onPress={() => setWeightModalOpen(false)}
+                disabled={savingWeight}
+              >
+                <Text style={styles.modalBtnCancelTxt}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnSave]}
+                onPress={saveWeight}
+                disabled={savingWeight}
+              >
+                {savingWeight ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.modalBtnSaveTxt}>{t('common.save')}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
     </ScrollView>
   );
@@ -184,4 +326,22 @@ const styles = StyleSheet.create({
   comingSoonIcon: { fontSize: 48, marginBottom: 12 },
   comingSoonText: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
   comingSoonHint: { fontSize: 13, color: '#6B7280', textAlign: 'center', marginTop: 6 },
+
+  logWeightBtn:    { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 16, gap: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 1 },
+  logWeightIcon:   { fontSize: 24 },
+  logWeightTitle:  { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
+  logWeightSub:    { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  logWeightArrow:  { fontSize: 22, color: '#9CA3AF' },
+
+  modalBackdrop:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalCard:        { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 340 },
+  modalTitle:       { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginBottom: 4, textAlign: 'center' },
+  modalHint:        { fontSize: 12, color: '#6B7280', textAlign: 'center', marginBottom: 16 },
+  modalInput:       { backgroundColor: '#F3F4F6', borderRadius: 12, padding: 16, fontSize: 28, color: '#1A1A1A', textAlign: 'center', fontWeight: '700', marginBottom: 20 },
+  modalBtnRow:      { flexDirection: 'row', gap: 12 },
+  modalBtn:         { flex: 1, borderRadius: 12, padding: 14, alignItems: 'center' },
+  modalBtnCancel:   { backgroundColor: '#F3F4F6' },
+  modalBtnCancelTxt:{ color: '#6B7280', fontWeight: '600', fontSize: 14 },
+  modalBtnSave:     { backgroundColor: '#2DB04B' },
+  modalBtnSaveTxt:  { color: '#fff', fontWeight: '700', fontSize: 14 },
 });
